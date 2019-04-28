@@ -1,40 +1,85 @@
 use rand::thread_rng;
 use rand::seq::SliceRandom;
-
-struct Deck<'a>{
-    cards: Vec<&'a str>,
-    current_index: usize,
+use std::fmt;
+fn build_table<'a>(deck: &'a [&Card], num_players: usize) -> Table<'a>{
+    let mut new_deck: Vec<&Card> = deck.to_vec();
+    Table {
+        deck: new_deck,
+        hole_cards: Vec::new(),
+        streets: Vec::new(),
+        cards_dealt: 0,
+        num_players,
+    }
 }
 
-impl<'a> Deck<'a> {
+struct Table <'a> {
+    deck: Vec<&'a Card>,
+    hole_cards: Vec<(&'a Card, &'a Card)>,
+    streets: Vec<&'a Card>,
+    cards_dealt: u8,
+    num_players: usize
+}
+
+impl<'a> Table<'a> {
     fn shuffle(&mut self){
-        self.cards.shuffle(&mut thread_rng());
+        self.deck.shuffle(&mut thread_rng());
     }
 
-    fn deal_cards(&mut self, n: usize) -> Option<Vec<&str>> {
-        if self.current_index > self.cards.len() - n {
-            None
-        } else {
-            self.current_index += n;
-            let mut v: Vec<&str> = Vec::new();
-            v.extend_from_slice(&self.cards[self.current_index..self.current_index + n]);
-            Some(v)
+    fn deal_hole_cards(&mut self) {
+        for _ in 0..self.num_players {
+            self.hole_cards.push((self.deck.pop().expect("Out of cards"), (self.deck.pop().expect("Out of cards"))))
         }
     }
 }
+
+/*
+ num represents card number
+ 2-10 equal their number, J = 11, Q = 12, K = 13, A = 14
+*/
+struct Card{
+    suit: String,
+    num: i8,
+}
+
+impl fmt::Display for Card {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let formatted_num = match self.num {
+            2 => "2",
+            3 => "3",
+            4 => "4",
+            5 => "5",
+            6 => "6",
+            7 => "7",
+            8 => "8",
+            9 => "9",
+            10 => "T",
+            11 => "J",
+            12 => "Q",
+            13 => "K",
+            14 => "A",
+            _ => "?",
+        };
+        write!(f, "{}{}", formatted_num, self.suit)
+    }
+}
+
 fn main() {
-    let mut deck = Deck {
-        cards: vec!["2s","2c","2h","2d","3s","3c","3h","3d","4s","4c","4h","4d","5s","5c","5h","5d",
-                    "6s","6c","6h","6d","7s","7c","7h","7d","8s","8c","8h","8d","9s","9c","9h","9d",
-                    "Ts","Tc","Th","Td","Js","Jc","Jh","Jd","Qs","Qc","Qh","Qd","Ks","Kc","Kh",
-                    "Kd","As","Ac","Ah","Ad"],
-        current_index: 0,
-    };
-    deck.shuffle();
-    for card in deck.deal_cards(26).unwrap(){
-        println!("{}", card);
+    let cards = generate_cards();
+    let cards_ref = cards.iter().collect::<Vec<_>>();
+    let mut table = build_table(&cards_ref, 3);
+    table.shuffle();
+    for card in table.deck{
+        println!("{}", card)
     }
-    for card in deck.deal_cards(26).unwrap(){
-        println!("{}", card);
+}
+
+fn generate_cards() -> Vec<Card>{
+    let mut cards = Vec::new();
+    for num in 2..15 {
+        for suit in &["H", "D", "S", "C"]{
+            cards.push(Card {suit: suit.to_string(), num});
+        }
     }
+    cards
+
 }
