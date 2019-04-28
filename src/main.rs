@@ -2,7 +2,7 @@ use rand::thread_rng;
 use rand::seq::SliceRandom;
 use std::fmt;
 fn build_table<'a>(deck: &'a [&Card], num_players: usize) -> Table<'a>{
-    let mut new_deck: Vec<&Card> = deck.to_vec();
+    let new_deck: Vec<&Card> = deck.to_vec();
     Table {
         deck: new_deck,
         hole_cards: Vec::new(),
