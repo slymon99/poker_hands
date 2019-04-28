@@ -30,6 +30,13 @@ impl<'a> Table<'a> {
             self.hole_cards.push((self.deck.pop().expect("Out of cards"), (self.deck.pop().expect("Out of cards"))))
         }
     }
+
+    fn deal_full_game(&mut self) {
+        self.deal_hole_cards();
+        for _ in 0..5 {
+            self.streets.push(self.deck.pop().expect("Out of cards"))
+        }
+    }
 }
 
 /*
@@ -68,9 +75,17 @@ fn main() {
     let cards_ref = cards.iter().collect::<Vec<_>>();
     let mut table = build_table(&cards_ref, 3);
     table.shuffle();
-    for card in table.deck{
+    table.deal_full_game();
+    for card in &table.deck{
         println!("{}", card)
     }
+    for card in &table.hole_cards{
+        println!("{} {}", card.0, card.1)
+    }
+    for card in &table.streets{
+        println!("{}", card)
+    }
+
 }
 
 fn generate_cards() -> Vec<Card>{
