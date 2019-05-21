@@ -1,6 +1,8 @@
 use rand::thread_rng;
 use rand::seq::SliceRandom;
 use std::fmt;
+use std::collections::HashMap;
+
 fn build_table<'a>(deck: &'a [&Card], num_players: usize) -> Table<'a>{
     let new_deck: Vec<&Card> = deck.to_vec();
     Table {
@@ -45,7 +47,7 @@ impl<'a> Table<'a> {
 */
 struct Card{
     suit: String,
-    num: i8,
+    num: u8,
 }
 
 impl fmt::Display for Card {
@@ -71,19 +73,29 @@ impl fmt::Display for Card {
 }
 
 fn main() {
-    let cards = generate_cards();
-    let cards_ref = cards.iter().collect::<Vec<_>>();
-    let mut table = build_table(&cards_ref, 3);
-    table.shuffle();
-    table.deal_full_game();
-    for card in &table.deck{
-        println!("{}", card)
-    }
-    for card in &table.hole_cards{
-        println!("{} {}", card.0, card.1)
-    }
-    for card in &table.streets{
-        println!("{}", card)
+//    let cards = generate_cards();
+//    let cards_ref = cards.iter().collect::<Vec<_>>();
+//    let mut table = build_table(&cards_ref, 3);
+//    table.shuffle();
+//    table.deal_full_game();
+//    for card in &table.deck{
+//        println!("{}", card)
+//    }
+//    for card in &table.hole_cards{
+//        println!("{} {}", card.0, card.1)
+//    }
+//    for card in &table.streets{
+//        println!("{}", card)
+//    }
+
+    for hand in enumerate_unique_hands().keys(){
+        println!();
+        for group in hand{
+            print!(" || ");
+            for card in group{
+                print!("{}-", card);
+            }
+        }
     }
 
 }
@@ -96,5 +108,42 @@ fn generate_cards() -> Vec<Card>{
         }
     }
     cards
+
+}
+
+//here be dragons
+fn enumerate_unique_hands() -> HashMap<Vec<Vec<u8>>, u32>{
+    let mut res = HashMap::new();
+
+    let cur_rank = 1;
+    //enumerate all straight flushes
+    for high_card in (6..15).rev() {
+        for option in &[[7, 0, 0, 0], [6, 1, 0, 0], [5, 1, 1, 0], [5, 2, 0, 0]]{
+            //calculate all potential groups
+            let mut potential_groups = Vec::new();
+            for (idx, group_total) in option.enumerate() {
+                for excess_cards in enumerate_all_groups(
+                    (0..high_card-4).collect().append(high_card + 1..15),
+                    if idx == 0 {group_total - 5} else {group_total}){
+                    let mut group = Vec::new();
+                    group.append(&excess_cards);
+                    if idx == 0{
+                        for card in high_card - 4..high_card + 1{
+                            group.push(card);
+                        }
+                    }
+                    potential_groups.insert(idx, group);
+                }
+            }
+
+        }
+
+
+    }
+    res
+}
+
+fn enumerate_all_groups<T>(vec: &[T], group_size: u8) -> Vec<Vec<T>>{
+    let res = Vec::new();
 
 }
